@@ -36,7 +36,7 @@ This plugin also works in the `mu-plugins` directory.
 
 == Changelog ==
 
-= 0.1 =
+= 1.0 =
 * Original first version
 
 == Upgrade Notice ==

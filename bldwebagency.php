@@ -2,7 +2,7 @@
 /*
 Plugin Name: BLD Web Agency Tweaks
 Description: Ce plugin modifie le logo sur la page de connexion Wordpress et apporte quelques tweaks à Wordpress pour de meilleures performances.
-Version: 0.1
+Version: 1.0
 License: GPL
 Plugin URI: https://www.bldwebagency.fr/wordpress-plugins/
 Author: Martin Bouillaud
