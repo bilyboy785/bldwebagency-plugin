@@ -36,6 +36,9 @@ This plugin also works in the `mu-plugins` directory.
 
 == Changelog ==
 
+= 1.1 =
+* Add function to download png file from BLD Web Agency file
+
 = 1.0 =
 * Original first version
 
