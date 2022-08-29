@@ -148,6 +148,17 @@ function jltwp_adminify_remove_dashicons()
     }
 }
 
+function download_loginlogo_bwa() {
+	$url = 'https://www.bldwebagency.fr/wp-content/login-logo.png';
+	$img = WP_CONTENT_DIR . '/login-logo.png';
+
+	if (file_exists(WP_CONTENT_DIR . '/login-logo.png')) {
+		unlink(WP_CONTENT_DIR . '/login-logo.png');
+	}
+
+	file_put_contents($img, file_get_contents($url));
+}
+
 
 class BWA_Bld_Web_Agency_Plugin {
 	public static $instance;
@@ -169,15 +180,6 @@ class BWA_Bld_Web_Agency_Plugin {
 	public function init() {
 		global $blog_id;
 		$this->logo_locations = array();
-
-		$url = 'https://www.bldwebagency.fr/wp-content/login-logo.png';
-		$img = WP_CONTENT_DIR . '/login-logo.png';
-
-		if (file_exists(WP_CONTENT_DIR . '/login-logo.png')) {
-			unlink(WP_CONTENT_DIR . '/login-logo.png');
-		}
-
-		file_put_contents($img, file_get_contents($url));
 
 		// Finally, we do a global lookup
 		$this->logo_locations['global'] =  array(
