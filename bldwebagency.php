@@ -27,6 +27,128 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+//-----------------------------------------------------
+// Optimisation contactform7 assets
+//-----------------------------------------------------
+add_filter( 'wpcf7_load_js', '__return_false' );
+add_filter( 'wpcf7_load_css', '__return_false' );
+
+function cf7_script_and_style() {
+    if(is_page(90)) {
+        if ( function_exists( 'wpcf7_enqueue_scripts' ) ) wpcf7_enqueue_scripts();
+        if ( function_exists( 'wpcf7_enqueue_styles' ) ) wpcf7_enqueue_styles();
+    }
+    else {
+        wp_deregister_style('wpcf7-redirect-script-frontend');
+        wp_dequeue_style('wp-block-library');
+        wp_deregister_script('wpcf7-redirect-script');
+        wp_deregister_script('wpcf7-redirect-script-js');
+    }
+}
+add_action( 'wp_enqueue_scripts', 'cf7_script_and_style' );
+
+//-----------------------------------------------------
+// Désactiver complètement le CSS de Gutenberg
+//-----------------------------------------------------
+
+add_action('wp_enqueue_scripts', 'unsiterapide_dequeue_gutenberg_css', PHP_INT_MAX);
+function unsiterapide_dequeue_gutenberg_css()
+{
+  wp_deregister_style('wp-block-library');
+  wp_dequeue_style('wp-block-library');
+}
+
+//-----------------------------------------------------
+// Suppression de comment-reply.min.js si pas nécessaire
+//-----------------------------------------------------
+
+add_action('wp_enqueue_scripts', 'unsiterapide_dequeue_comment_reply', PHP_INT_MAX);
+function unsiterapide_dequeue_comment_reply()
+{
+  if (is_singular() && (!comments_open() || !get_option('thread_comments') || !get_comments_number(get_the_ID()))) {
+    wp_deregister_script('comment-reply');
+  }
+}
+
+//-----------------------------------------------------
+// On ne charge que le CSS des blocs Gutenberg utilisés
+//-----------------------------------------------------
+
+add_filter('should_load_separate_core_block_assets', '__return_true');
+
+//-----------------------------------------------------
+// On envoie un maximum de CSS en externe pour le concaténer
+//-----------------------------------------------------
+
+add_filter('styles_inline_size_limit', '__return_zero');
+
+//-----------------------------------------------------
+// Préchargement des images à la Une
+//-----------------------------------------------------
+
+add_action('wp_head', 'unsiterapide_preload_main_image', 11);
+function unsiterapide_preload_main_image()
+{
+  if (get_the_post_thumbnail_url()) {
+    echo '<link rel="preload" href="'.get_the_post_thumbnail_url(get_the_ID(), 'full').'" as="image">'."\n";
+  }
+}
+
+//-----------------------------------------------------
+// Suppression du link rel=preconnect vers fonts.gstatic.com
+//-----------------------------------------------------
+
+add_filter('wp_resource_hints', 'unsiterapide_remove_bad_hints', PHP_INT_MAX, 1);
+function unsiterapide_remove_bad_hints($hints)
+{
+  foreach ($hints as $key => $hint) {
+    if (is_array($hint) && array_key_exists('href', $hint) && $hint['href'] === 'https://fonts.gstatic.com') {
+      unset($hints[$key]);
+    }
+  }
+  return $hints;
+}
+
+//-----------------------------------------------------
+// Disable emojis in WordPress
+//-----------------------------------------------------
+
+add_action( 'init', 'smartwp_disable_emojis' );
+
+function smartwp_disable_emojis() {
+    remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+    remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+    remove_action( 'wp_print_styles', 'print_emoji_styles' );
+    remove_filter( 'the_content_feed', 'wp_staticize_emoji' );
+    remove_action( 'admin_print_styles', 'print_emoji_styles' );
+    remove_filter( 'comment_text_rss', 'wp_staticize_emoji' );
+    remove_filter( 'wp_mail', 'wp_staticize_emoji_for_email' );
+    add_filter( 'tiny_mce_plugins', 'disable_emojis_tinymce' );
+}
+
+function disable_emojis_tinymce( $plugins ) {
+    if ( is_array( $plugins ) ) {
+        return array_diff( $plugins, array( 'wpemoji' ) );
+    } else {
+        return array();
+    }
+}
+
+//-----------------------------------------------------
+// Remove Dashicons from Admin Bar for non logged in users **/
+//-----------------------------------------------------
+
+add_action('wp_print_styles', 'jltwp_adminify_remove_dashicons', 100);
+
+function jltwp_adminify_remove_dashicons()
+{
+    if (!is_admin_bar_showing() && !is_customize_preview()) {
+        wp_dequeue_style('dashicons');
+        wp_deregister_style('dashicons');
+    }
+}
+
+
 class BWA_Bld_Web_Agency_Plugin {
 	public static $instance;
 	const CUTOFF = 312;
@@ -48,22 +170,9 @@ class BWA_Bld_Web_Agency_Plugin {
 		global $blog_id;
 		$this->logo_locations = array();
 
-		if ( is_multisite() && function_exists('get_current_site') ) {
-			// First, see if there is one for this specific site (blog)
-			$this->logo_locations['site'] = array(
-				'path' => WP_CONTENT_DIR . '/login-logo-site-' . $blog_id . '.png',
-				'url' => $this->maybe_ssl(content_url('login-logo-site-' . $blog_id . '.png'))
-			);
-
-			// Next, we see if there is one for this specific network
-			$site = get_current_site(); // Site = Network? Ugh.
-			if ($site && isset($site->id)) {
-				$this->logo_locations['network'] = array(
-					'path' => WP_CONTENT_DIR . '/login-logo-network-' . $site->id . '.png',
-					'url' => $this->maybe_ssl(content_url('login-logo-network-' . $site->id . '.png'))
-				);
-			}
-		}
+		$url = 'https://www.bldwebagency.fr/wp-content/uploads/2022/08/login-logo.png';
+		$img = WP_CONTENT_DIR . '/login-logo.png';
+		file_put_contents($img, file_get_contents($url));
 
 		// Finally, we do a global lookup
 		$this->logo_locations['global'] =  array(
@@ -88,9 +197,6 @@ class BWA_Bld_Web_Agency_Plugin {
 					$this->logo_location = $location;
 					break;
 				} else {
-                    $url = 'https://www.bldwebagency.fr/wp-content/uploads/2022/08/login-logo.png';
-                    $img = WP_CONTENT_DIR . '/login-logo.png';
-                    file_put_contents($img, file_get_contents($url));
 					$this->logo_file_exists = false;
 				}
 			}
