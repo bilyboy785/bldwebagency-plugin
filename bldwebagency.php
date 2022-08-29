@@ -171,7 +171,7 @@ function jltwp_adminify_remove_dashicons()
 //-----------------------------------------------------
 
 function my_login_logo_one() {
-	$logo_filename = WP_CONTENT_DIR . '/bldwebagency-login.png',
+	$logo_filename = WP_CONTENT_DIR . '/bldwebagency-login.png';
 	if (!file_exists($logo_filename)) {
 		$logo_url = 'https://www.bldwebagency.fr/wp-content/login-logo.png';
 		file_put_contents($logo_filename, file_get_contents($url));
