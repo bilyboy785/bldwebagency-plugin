@@ -2,7 +2,7 @@
 /*
 Plugin Name: BLD Web Agency Tweaks
 Description: Ce plugin modifie le logo sur la page de connexion Wordpress et apporte quelques tweaks à Wordpress pour de meilleures performances.
-Version: 1.4
+Version: 1.5
 License: GPL
 Plugin URI: https://www.bldwebagency.fr/wordpress-plugins/
 Author: Martin Bouillaud
@@ -159,172 +159,24 @@ function download_loginlogo_bwa() {
 	file_put_contents($img, file_get_contents($url));
 }
 
+//-----------------------------------------------------
+// Change login logo
+//-----------------------------------------------------
 
-class BWA_Bld_Web_Agency_Plugin {
-	public static $instance;
-	const CUTOFF = 312;
-	public $logo_locations;
-	public $logo_location;
-	public $width = 0;
-	public $height = 0;
-	public $original_width;
-	public $original_height;
-	public $logo_size;
-	public $logo_file_exists;
-
-	public function __construct() {
-		self::$instance = $this;
-		add_action('login_head', array( $this, 'login_head' ));
+function my_login_logo_one() {
+	$logo_filename = WP_CONTENT_DIR . '/bldwebagency-login.png',
+	if (!file_exists($logo_filename)) {
+		$logo_url = 'https://www.bldwebagency.fr/wp-content/login-logo.png';
+		file_put_contents($logo_filename, file_get_contents($url));
 	}
-
-	public function init() {
-		global $blog_id;
-		$this->logo_locations = array();
-
-		// Finally, we do a global lookup
-		$this->logo_locations['global'] =  array(
-			'path' => WP_CONTENT_DIR . '/login-logo.png',
-			'url' => $this->maybe_ssl(content_url('login-logo.png'))
-		);
+?>
+	<style type="text/css">
+	body.login div#login h1 a {
+		background-image: url('wp-content/bldwebagency-login.png');
+		padding-bottom: 30px;
 	}
-
-	private function maybe_ssl($url) {
-		if ( is_ssl() ) {
-			$url = preg_replace('#^http://#', 'https://', $url);
-		}
-
-		return $url;
-	}
-
-	private function logo_file_exists() {
-		if ( !isset( $this->logo_file_exists ) ) {
-			foreach ( $this->logo_locations as $location ) {
-				if ( file_exists( $location['path'] ) ) {
-					$this->logo_file_exists = true;
-					$this->logo_location = $location;
-					break;
-				} else {
-					$this->logo_file_exists = false;
-				}
-			}
-		}
-
-		return !! $this->logo_file_exists;
-	}
-
-	private function get_location($what = '') {
-		if ($this->logo_file_exists()) {
-			if ('path' == $what) {
-				return $this->logo_location[$what];
-			} elseif ('url' == $what) {
-				return $this->logo_location[$what] . '?v=' . filemtime($this->logo_location['path']);
-			} else {
-				return $this->logo_location;
-			}
-		}
-		return false;
-	}
-
-	private function get_width() {
-		$this->get_logo_size();
-		return absint($this->width);
-	}
-
-	private function get_height() {
-		$this->get_logo_size();
-		return absint($this->height);
-	}
-
-	private function get_original_width() {
-		$this->get_logo_size();
-		return absint($this->original_width);
-	}
-
-	private function get_original_height() {
-		$this->get_logo_size();
-		return absint($this->original_height);
-	}
-
-	private function get_logo_size() {
-		if (!$this->logo_file_exists()) {
-			return false;
-		}
-		if (!$this->logo_size) {
-			if ($sizes = getimagesize($this->get_location('path'))) {
-				$this->logo_size = $sizes;
-				$this->width  = $sizes[0];
-				$this->height = $sizes[1];
-				$this->original_height = $this->height;
-				$this->original_width = $this->width;
-				if ($this->width > self::CUTOFF) {
-					// Use CSS 3 scaling
-					$ratio = $this->height / $this->width;
-					$this->height = ceil($ratio * self::CUTOFF);
-					$this->width = self::CUTOFF;
-				}
-			} else {
-				$this->logo_file_exists = false;
-			}
-		}
-		return array( $this->width, $this->height );
-	}
-
-	private function css3($rule, $value) {
-		foreach (array( '', '-o-', '-webkit-', '-khtml-', '-moz-', '-ms-' ) as $prefix) {
-			echo $prefix . $rule . ': ' . $value . '; ';
-		}
-	}
-
-	public function login_headerurl() {
-		return esc_url(trailingslashit(get_bloginfo('url')));
-	}
-
-	public function login_headertitle() {
-		return esc_attr(get_bloginfo('name'));
-	}
-
-	public function login_head() {
-		$this->init();
-
-		if (!$this->logo_file_exists()) {
-			return;
-		}
-
-		add_filter('login_headerurl', array( $this, 'login_headerurl' ));
-		add_filter(
-			version_compare(get_bloginfo('version'), '5.2', '>=') ? 'login_headertext' : 'login_headertitle',
-			array( $this, 'login_headertitle' )
-		);
-
-		?>
-		<!-- Login Logo plugin for WordPress: https://txfx.net/wordpress-plugins/login-logo/ -->
-		<style>
-			.login h1 a {
-				background: url(<?php echo esc_url_raw($this->get_location('url')); ?>) no-repeat top center;
-				width: <?php echo self::CUTOFF; ?>px;
-				height: <?php echo $this->get_height(); ?>px;
-				margin-left: 8px;
-				padding-bottom: 16px;
-				<?php
-					if (self::CUTOFF < $this->get_original_width()) {
-							$this->css3('background-size', 'contain');
-					} else {
-							$this->css3('background-size', 'auto');
-					}
-				?>
-			}
-		</style>
-
-		<?php if (self::CUTOFF < $this->get_width()) { ?>
-			<!--[if lt IE 9]>
-				<style>
-					height: <?php echo $this->get_original_height() + 3; ?>px;
-				</style>
-			<![endif]-->
-		<?php
-		}
-	}
+	</style>
+<?php
 }
 
-// Bootstrap
-new BWA_Bld_Web_Agency_Plugin;
+add_action( 'login_enqueue_scripts', 'my_login_logo_one' );

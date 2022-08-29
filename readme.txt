@@ -36,6 +36,12 @@ This plugin also works in the `mu-plugins` directory.
 
 == Changelog ==
 
+= 1.5 =
+* New function to change Login Logo
+
+= 1.4 =
+* Minor fixes
+
 = 1.3 =
 * Fix bug with download image
 
@@ -49,4 +55,3 @@ This plugin also works in the `mu-plugins` directory.
 * Original first version
 
 == Upgrade Notice ==
-
