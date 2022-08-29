@@ -59,6 +59,24 @@ function unsiterapide_dequeue_gutenberg_css()
 }
 
 //-----------------------------------------------------
+// Supprimer les liens RSD
+//-----------------------------------------------------
+remove_action ('wp_head', 'rsd_link');
+
+//-----------------------------------------------------
+// Masquer la version de Wordpress
+//-----------------------------------------------------
+remove_action ('wp_head', 'wp_generator');
+
+//-----------------------------------------------------
+// Disable Heartbeat
+//-----------------------------------------------------
+add_action ('init', 'stop_heartbeat', 1);
+function stop_heartbeat () {
+	wp_deregister_script ('heartbeat');
+}
+
+//-----------------------------------------------------
 // Suppression de comment-reply.min.js si pas nécessaire
 //-----------------------------------------------------
 
@@ -135,7 +153,7 @@ function disable_emojis_tinymce( $plugins ) {
 }
 
 //-----------------------------------------------------
-// Remove Dashicons from Admin Bar for non logged in users **/
+// Remove Dashicons from Admin Bar for non logged in users
 //-----------------------------------------------------
 
 add_action('wp_print_styles', 'jltwp_adminify_remove_dashicons', 100);
@@ -146,17 +164,6 @@ function jltwp_adminify_remove_dashicons()
         wp_dequeue_style('dashicons');
         wp_deregister_style('dashicons');
     }
-}
-
-function download_loginlogo_bwa() {
-	$url = 'https://www.bldwebagency.fr/wp-content/login-logo.png';
-	$img = WP_CONTENT_DIR . '/login-logo.png';
-
-	if (file_exists(WP_CONTENT_DIR . '/login-logo.png')) {
-		unlink(WP_CONTENT_DIR . '/login-logo.png');
-	}
-
-	file_put_contents($img, file_get_contents($url));
 }
 
 //-----------------------------------------------------
