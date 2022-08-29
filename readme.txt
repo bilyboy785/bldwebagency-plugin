@@ -36,6 +36,9 @@ This plugin also works in the `mu-plugins` directory.
 
 == Changelog ==
 
+= 1.3 =
+* Fix bug with download image
+
 = 1.2 =
 * Add some tweaks for performances
 
